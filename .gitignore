@@ -1,0 +1,22 @@
+# Build artifacts
+*.tar.gz
+*.deb
+*.rpm
+*.AppImage
+build/
+dist/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+# Environment
+.env
+.env.*

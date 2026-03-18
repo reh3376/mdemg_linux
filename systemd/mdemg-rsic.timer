@@ -1,0 +1,11 @@
+[Unit]
+Description=MDEMG RSIC Self-Improvement Timer
+Documentation=https://github.com/reh3376/mdemg_linux
+
+[Timer]
+OnCalendar=*-*-* 03:00:00
+Persistent=true
+RandomizedDelaySec=300
+
+[Install]
+WantedBy=timers.target

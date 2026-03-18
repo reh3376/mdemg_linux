@@ -1,0 +1,13 @@
+[Unit]
+Description=MDEMG RSIC Self-Improvement Cycle
+Documentation=https://github.com/reh3376/mdemg_linux
+After=mdemg.service
+Requires=mdemg.service
+
+[Service]
+Type=oneshot
+User=%i
+ExecStart=/usr/bin/curl -s -X POST http://localhost:9999/v1/self-improve/trigger -H "Content-Type: application/json" -d '{"space_id":"default"}'
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=mdemg-rsic
