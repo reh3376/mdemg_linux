@@ -13,11 +13,15 @@ set -euo pipefail
 REPO="reh3376/mdemg"
 INSTALL_PREFIX="${MDEMG_INSTALL_PREFIX:-/usr/local}"
 BIN_DIR="${INSTALL_PREFIX}/bin"
+SHARE_DIR="${INSTALL_PREFIX}/share/mdemg"
 SYSTEMD_DIR="/etc/systemd/system"
 BASH_COMPLETION_DIR="/etc/bash_completion.d"
+ZSH_COMPLETION_DIR="${INSTALL_PREFIX}/share/zsh/site-functions"
+FISH_COMPLETION_DIR="${INSTALL_PREFIX}/share/fish/vendor_completions.d"
 MAN_DIR="${INSTALL_PREFIX}/share/man/man1"
 VERSION=""
 ACTION="install"
+NO_PLUGINS=false
 
 # ─── Colors ──────────────────────────────────────────────────────────────────
 RED='\033[0;31m'
@@ -37,7 +41,8 @@ while [[ $# -gt 0 ]]; do
         --upgrade)    ACTION="upgrade";    shift ;;
         --uninstall)  ACTION="uninstall";  shift ;;
         --version)    VERSION="$2";        shift 2 ;;
-        --prefix)     INSTALL_PREFIX="$2"; BIN_DIR="${INSTALL_PREFIX}/bin"; shift 2 ;;
+        --prefix)     INSTALL_PREFIX="$2"; BIN_DIR="${INSTALL_PREFIX}/bin"; SHARE_DIR="${INSTALL_PREFIX}/share/mdemg"; shift 2 ;;
+        --no-plugins) NO_PLUGINS=true;     shift ;;
         --help|-h)
             echo "MDEMG Linux Installer"
             echo ""
@@ -48,6 +53,7 @@ while [[ $# -gt 0 ]]; do
             echo "  --uninstall     Remove MDEMG"
             echo "  --version VER   Install specific version (e.g., v0.2.14)"
             echo "  --prefix DIR    Install prefix (default: /usr/local)"
+            echo "  --no-plugins    Skip UxTS plugin installation"
             echo "  --help          Show this help"
             exit 0
             ;;
@@ -175,6 +181,7 @@ do_install() {
     tmpdir="$(mktemp -d)"
     trap 'rm -rf "$tmpdir"' EXIT
 
+    # Download tarball
     info "Downloading ${url}..."
     if command -v curl &>/dev/null; then
         curl -fsSL -o "${tmpdir}/${tarball}" "$url"
@@ -182,26 +189,84 @@ do_install() {
         wget -q -O "${tmpdir}/${tarball}" "$url"
     fi
 
+    # Download and verify SHA256 checksum (mirrors Windows Install-MDEMG.ps1 pattern)
+    local checksums_url="https://github.com/${REPO}/releases/download/${version}/checksums.txt"
+    info "Verifying checksum..."
+    local checksums_file="${tmpdir}/checksums.txt"
+    if command -v curl &>/dev/null; then
+        curl -fsSL -o "$checksums_file" "$checksums_url" 2>/dev/null || true
+    else
+        wget -q -O "$checksums_file" "$checksums_url" 2>/dev/null || true
+    fi
+
+    if [[ -f "$checksums_file" && -s "$checksums_file" ]]; then
+        local expected_hash actual_hash
+        expected_hash=$(grep "${tarball}" "$checksums_file" | awk '{print $1}')
+        if [[ -n "$expected_hash" ]]; then
+            actual_hash=$(sha256sum "${tmpdir}/${tarball}" | awk '{print $1}')
+            if [[ "$expected_hash" == "$actual_hash" ]]; then
+                success "Checksum verified (SHA256)"
+            else
+                error "Checksum mismatch!"
+                error "  Expected: ${expected_hash}"
+                error "  Actual:   ${actual_hash}"
+                exit 1
+            fi
+        else
+            warn "No checksum entry found for ${tarball} — skipping verification"
+        fi
+    else
+        warn "checksums.txt not available — skipping verification"
+    fi
+
     info "Extracting..."
     tar -xzf "${tmpdir}/${tarball}" -C "$tmpdir"
 
     # Install binary
     info "Installing to ${BIN_DIR}/mdemg..."
+    sudo mkdir -p "$BIN_DIR"
     sudo install -m 755 "${tmpdir}/mdemg" "${BIN_DIR}/mdemg"
 
-    # Install man page if present
-    if [[ -f "${tmpdir}/mdemg.1" ]]; then
+    # Install man pages (all of them, mirrors Homebrew formula: man1.install Dir["man/man1/*.1"])
+    if [[ -d "${tmpdir}/man/man1" ]]; then
+        info "Installing man pages..."
         sudo mkdir -p "$MAN_DIR"
-        sudo install -m 644 "${tmpdir}/mdemg.1" "${MAN_DIR}/mdemg.1"
+        for manfile in "${tmpdir}"/man/man1/*.1; do
+            [[ -f "$manfile" ]] && sudo install -m 644 "$manfile" "${MAN_DIR}/"
+        done
+        success "Man pages installed to ${MAN_DIR}/"
     fi
 
-    # Install bash completion if present
+    # Install UxTS plugin (mirrors Homebrew formula: share/"mdemg/plugins/uxts-module")
+    if [[ "$NO_PLUGINS" != true ]]; then
+        if [[ -f "${tmpdir}/uxts-module" ]]; then
+            info "Installing UxTS plugin..."
+            local plugdir="${SHARE_DIR}/plugins/uxts-module"
+            sudo mkdir -p "$plugdir"
+            sudo install -m 755 "${tmpdir}/uxts-module" "${plugdir}/uxts-module"
+            if [[ -f "${tmpdir}/plugins/uxts-module/manifest.json" ]]; then
+                sudo install -m 644 "${tmpdir}/plugins/uxts-module/manifest.json" "${plugdir}/manifest.json"
+            fi
+            success "UxTS plugin installed to ${plugdir}/"
+        fi
+    fi
+
+    # Install shell completions
     if [[ -f "${tmpdir}/completions/mdemg.bash" ]]; then
+        info "Installing shell completions..."
         sudo mkdir -p "$BASH_COMPLETION_DIR"
         sudo install -m 644 "${tmpdir}/completions/mdemg.bash" "${BASH_COMPLETION_DIR}/mdemg"
     fi
+    if [[ -f "${tmpdir}/completions/mdemg.zsh" ]]; then
+        sudo mkdir -p "$ZSH_COMPLETION_DIR"
+        sudo install -m 644 "${tmpdir}/completions/mdemg.zsh" "${ZSH_COMPLETION_DIR}/_mdemg"
+    fi
+    if [[ -f "${tmpdir}/completions/mdemg.fish" ]]; then
+        sudo mkdir -p "$FISH_COMPLETION_DIR"
+        sudo install -m 644 "${tmpdir}/completions/mdemg.fish" "${FISH_COMPLETION_DIR}/mdemg.fish"
+    fi
 
-    # Install systemd units (optional)
+    # Install systemd units (if systemd is available)
     if [[ -d /run/systemd/system ]]; then
         info "Installing systemd service files..."
         local script_dir
@@ -214,6 +279,19 @@ do_install() {
             info "Enable with: sudo systemctl enable --now mdemg@\$USER"
         fi
     fi
+
+    # Write VERSION file (mirrors Windows Install-MDEMG.ps1 pattern)
+    local version_file="${BIN_DIR}/../share/mdemg/VERSION"
+    sudo mkdir -p "$(dirname "$version_file")"
+    sudo tee "$version_file" > /dev/null <<VEOF
+{
+  "version": "${version#v}",
+  "installed_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+  "platform": "${platform}",
+  "installer": "install.sh",
+  "prefix": "${INSTALL_PREFIX}"
+}
+VEOF
 
     success "MDEMG ${version} installed successfully!"
     echo ""
@@ -270,17 +348,37 @@ do_uninstall() {
     done
     sudo systemctl daemon-reload 2>/dev/null || true
 
-    # Remove man page
-    if [[ -f "${MAN_DIR}/mdemg.1" ]]; then
-        sudo rm -f "${MAN_DIR}/mdemg.1"
-        success "Removed man page"
+    # Remove man pages
+    local removed_man=0
+    for manfile in "${MAN_DIR}"/mdemg*.1; do
+        if [[ -f "$manfile" ]]; then
+            sudo rm -f "$manfile"
+            removed_man=$((removed_man + 1))
+        fi
+    done
+    [[ $removed_man -gt 0 ]] && success "Removed ${removed_man} man page(s)"
+
+    # Remove UxTS plugin
+    if [[ -d "${SHARE_DIR}/plugins/uxts-module" ]]; then
+        sudo rm -rf "${SHARE_DIR}/plugins/uxts-module"
+        success "Removed UxTS plugin"
     fi
 
-    # Remove bash completion
-    if [[ -f "${BASH_COMPLETION_DIR}/mdemg" ]]; then
-        sudo rm -f "${BASH_COMPLETION_DIR}/mdemg"
-        success "Removed bash completion"
+    # Remove VERSION file
+    if [[ -f "${SHARE_DIR}/VERSION" ]]; then
+        sudo rm -f "${SHARE_DIR}/VERSION"
     fi
+
+    # Clean up share dir if empty
+    sudo rmdir "${SHARE_DIR}/plugins" "${SHARE_DIR}" 2>/dev/null || true
+
+    # Remove shell completions
+    for comp_file in "${BASH_COMPLETION_DIR}/mdemg" "${ZSH_COMPLETION_DIR}/_mdemg" "${FISH_COMPLETION_DIR}/mdemg.fish"; do
+        if [[ -f "$comp_file" ]]; then
+            sudo rm -f "$comp_file"
+            success "Removed $(basename "$comp_file")"
+        fi
+    done
 
     success "MDEMG uninstalled."
     echo ""
