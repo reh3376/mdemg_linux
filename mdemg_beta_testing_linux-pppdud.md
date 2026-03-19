@@ -1,13 +1,20 @@
 # MDEMG Linux Beta Testing Guide
 
 **Version under test:** v0.2.15 (CLI) / v0.2.0 (Sidebar)
-**Date:** _______________
-**Tester:** _______________
-**Machine specs:** _______________
-**Distro:** _______________ (output of `cat /etc/os-release | grep PRETTY_NAME`)
-**Kernel:** _______________ (output of `uname -r`)
-**Docker Engine version:** _______________
-**Desktop Environment:** _______________ (GNOME / KDE / XFCE / None)
+
+**Date:** March 19th, 2026
+
+**Tester:** PPPDUD
+
+**Machine specs:** amd64 32-thread with NVIDIA 5060TI GPU
+
+**Distro:** Ubuntu 25.10 (output of `cat /etc/os-release | grep PRETTY_NAME`)
+
+**Kernel:** 6.17.0-19-generic (output of `uname -r`)
+
+**Docker Engine version:** 29.1.3
+
+**Desktop Environment:** GNOME (GNOME / KDE / XFCE / None)
 
 ---
 
