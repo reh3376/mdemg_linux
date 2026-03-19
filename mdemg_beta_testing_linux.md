@@ -1,12 +1,55 @@
 # MDEMG Linux Beta Testing Guide
 
-**Version under test:** v0.2.11
+**Version under test:** v0.2.15 (CLI) / v0.1.0 (Sidebar)
 **Date:** _______________
 **Tester:** _______________
 **Machine specs:** _______________
 **Distro:** _______________ (output of `cat /etc/os-release | grep PRETTY_NAME`)
 **Kernel:** _______________ (output of `uname -r`)
 **Docker Engine version:** _______________
+**Desktop Environment:** _______________ (GNOME / KDE / XFCE / None)
+
+---
+
+## What is MDEMG?
+
+MDEMG (Multi-Dimensional Emergent Memory Graph) is a **persistent memory system for AI coding assistants** like Claude Code, Cursor, and GitHub Copilot. Think of it as a "long-term brain" — without MDEMG, these AI tools forget everything between sessions. With MDEMG, they remember your codebase, your decisions, your corrections, and your preferences across every conversation.
+
+### How It Works (The 60-Second Version)
+
+1. **You code with an AI assistant** — MDEMG runs quietly in the background
+2. **Observations are captured** — decisions you make, corrections you give, patterns in your code
+3. **A knowledge graph grows** — Neo4j stores these observations with semantic connections between them
+4. **Higher-level concepts emerge** — MDEMG automatically identifies themes, clusters similar knowledge, and strengthens frequently co-activated connections (Hebbian learning, like neurons in a brain)
+5. **Your AI assistant gets smarter** — next session, it recalls relevant past context instead of starting from scratch
+
+### Key Concepts You'll Encounter During Testing
+
+| Concept | What It Means |
+|---------|---------------|
+| **Space** | An isolated knowledge graph. Each project gets its own space (like a separate brain for each codebase). |
+| **Observation** | A unit of knowledge — a decision, correction, error, preference, or learning captured from a session. |
+| **CMS** (Conversation Memory System) | The subsystem that captures, stores, and retrieves observations from AI sessions. |
+| **RSIC** (Reflective Self-Improvement Cycle) | An automated loop that periodically analyzes the knowledge graph, identifies gaps, and optimizes retrieval quality. |
+| **Consolidation** | The process of clustering similar observations and creating higher-level "concept" nodes (like how the brain moves short-term memories into long-term storage during sleep). |
+| **Hebbian Learning** | "Neurons that fire together wire together" — observations accessed together get linked, strengthening the graph over time. |
+| **Jiminy** | An inner-voice guidance system that proactively surfaces relevant past context, warnings, and suggestions during AI sessions. |
+| **Ingest** | Feeding data into MDEMG — code files, git history, API docs, etc. |
+| **Recall** | Querying MDEMG to retrieve relevant past knowledge using semantic search. |
+| **MCP** (Model Context Protocol) | A standard for AI tools to communicate with external systems. MDEMG runs as an MCP server so any MCP-compatible AI assistant can use it. |
+
+### What You're Testing
+
+This guide walks you through installing and exercising every major MDEMG subsystem on Linux:
+
+- **Tier 1**: Installation, Neo4j database, server startup, health checks
+- **Tier 2**: Feeding data into the system (8 ingestion methods)
+- **Tier 3**: Memory capture, recall, self-improvement cycles
+- **Tier 4**: Backup, maintenance, edge decay
+- **Tier 5**: Advanced features (secrets, MCP, systemd, export/import)
+- **Sidebar App**: A desktop companion that monitors MDEMG health, shows memory stats, and manages server lifecycle via system tray
+
+You do NOT need to be an expert. The tests are designed as step-by-step commands with expected outputs. If something doesn't match, that's valuable feedback — file an issue (see [Feedback & Contributing](#feedback--contributing) at the bottom).
 
 ---
 
@@ -18,8 +61,9 @@
 | 2 | Ingestion | 8 | | | | |
 | 3 | CMS & RSIC | 10 | | | | |
 | 4 | Backup & Maintenance | 5 | | | | |
-| 5 | Advanced | 8 | | | | |
-| **Total** | | **40** | | | | |
+| 5 | Advanced | 9 | | | | |
+| S | Sidebar App | 5 | | | | |
+| **Total** | | **46** | | | | |
 
 ---
 
@@ -249,6 +293,7 @@ These docs cover everything you're testing. Use them for troubleshooting, unders
 | [API Reference](docs/api-reference.md) | Every HTTP endpoint with request/response shapes and curl examples |
 | [CMS & RSIC Guide](docs/cms-rsic-guide.md) | Conversation memory, Jiminy inner-voice guidance, observation types, self-improvement cycles |
 | [Ingestion Guide](docs/ingestion-guide.md) | All 8 ingestion methods — codebase, scraper, Linear, webhooks, file watcher, API |
+| [Sidebar README](https://github.com/reh3376/mdemg-linux-sidebar/blob/main/README.md) | Sidebar app installation, architecture, system tray compatibility, multi-instance |
 
 ---
 
@@ -312,7 +357,7 @@ mdemg version
 **Expected output:**
 
 ```
-mdemg v0.2.x
+mdemg v0.2.15
   commit:  <short-hash>
   built:   <date>
   go:      go1.24.x
@@ -1088,6 +1133,150 @@ sudo systemctl disable mdemg-rsic@$USER.timer
 
 ---
 
+## Sidebar App: MDEMG Desktop Companion (~15 min)
+
+> **Requires:** A Linux desktop environment (GNOME, KDE, XFCE, Cinnamon, MATE, etc.) with a system tray. The sidebar does NOT work on headless servers or in SSH sessions. The MDEMG server must be running (completed Tier 1 above).
+
+The MDEMG Sidebar is a Tauri-based desktop application that provides a visual dashboard for monitoring and controlling MDEMG. It sits in your system tray and shows real-time health status, memory statistics, learning activity, RSIC cycles, server logs, and more — across 7 tabs.
+
+### S.1: Install Sidebar
+
+Choose one installation method:
+
+**Method A — AppImage (recommended, works on any distro):**
+
+```bash
+# Download the AppImage
+curl -fsSL -o ~/mdemg-sidebar.AppImage \
+  "https://github.com/reh3376/mdemg-linux-sidebar/releases/download/v0.1.0/mdemg-sidebar_0.1.0_amd64.AppImage"
+
+# Make it executable
+chmod +x ~/mdemg-sidebar.AppImage
+
+# Run it
+~/mdemg-sidebar.AppImage &
+```
+
+> **Note:** Some distributions require FUSE to run AppImages. If you get an error about `libfuse`, install it:
+>
+> ```bash
+> # Ubuntu/Debian:
+> sudo apt install libfuse2
+>
+> # Fedora:
+> sudo dnf install fuse
+>
+> # If FUSE is not available, extract and run directly:
+> ~/mdemg-sidebar.AppImage --appimage-extract
+> ./squashfs-root/mdemg-sidebar &
+> ```
+
+**Method B — .deb package (Debian/Ubuntu only):**
+
+```bash
+# Download the .deb
+curl -fsSL -o /tmp/mdemg-sidebar.deb \
+  "https://github.com/reh3376/mdemg-linux-sidebar/releases/download/v0.1.0/mdemg-sidebar_0.1.0_amd64.deb"
+
+# Install
+sudo dpkg -i /tmp/mdemg-sidebar.deb
+
+# If there are missing dependencies:
+sudo apt install -f
+
+# Run
+mdemg-sidebar &
+```
+
+**Expected:** The sidebar appears in your system tray (notification area). A small icon should be visible. Hover over it to see "MDEMG: Running" (if the server is up) or "MDEMG: Offline" (if not).
+
+> **GNOME users:** GNOME removed the system tray in GNOME 3.26+. You need the [AppIndicator extension](https://extensions.gnome.org/extension/615/appindicator-support/):
+>
+> ```bash
+> # Ubuntu (usually pre-installed):
+> sudo apt install gnome-shell-extension-appindicator
+> # Then: Settings → Extensions → enable "AppIndicator and KStatusNotifierItem Support"
+> # Log out and back in
+> ```
+
+- [ ] **PASS** — sidebar installed and system tray icon visible
+- [ ] **Method used:** (A) AppImage / (B) .deb
+- [ ] **SKIP** — no desktop environment (headless server)
+
+---
+
+### S.2: Sidebar Connection
+
+Click the tray icon (or left-click it) to open the sidebar window.
+
+**Expected:** The window opens showing the **Status** tab with:
+- A green dot in the header indicating the server is online
+- "MDEMG Sidebar" title
+- 7 tabs across the top: Status, Memory, Learning, Neo4j, Config, Logs, RSIC
+
+If the status dot is red (offline), verify the MDEMG server is running:
+
+```bash
+curl -s http://localhost:9999/healthz
+```
+
+- [ ] **PASS** — sidebar window opens, shows green status, 7 tabs visible
+
+---
+
+### S.3: Browse All Tabs
+
+Click through each tab and verify it loads data (not just "Loading..." forever):
+
+| Tab | What to look for |
+|-----|-----------------|
+| **Status** | Server status (Running/Offline), subsystem health, model info |
+| **Memory** | Total observations count, layer breakdown (L0-L5), health score |
+| **Learning** | Hebbian edge counts, learning phase (cold/learning/warm/saturated) |
+| **Neo4j** | Database version, node/edge counts, connection pool stats |
+| **Config** | Server endpoint, space ID, key-value config pairs |
+| **Logs** | Recent server log lines (may be empty if server just started) |
+| **RSIC** | Engine status, watchdog health, recent cycle history |
+
+> **Tip:** Some tabs (Memory, Learning, RSIC) populate with more data after you've run ingestion and observation tests in Tiers 2-3. If a tab shows mostly zeros or "—", that's expected on a fresh install.
+
+- [ ] **PASS** — all 7 tabs load and display data (or reasonable empty state)
+
+---
+
+### S.4: Test Server Controls
+
+From the **Status** tab, test the lifecycle controls:
+
+1. **Stop the server** using the sidebar's stop button (or via terminal: `mdemg stop`)
+2. Verify the sidebar shows "Offline" (red status dot)
+3. **Start the server** using the sidebar's start button (or via terminal: `mdemg start --auto-migrate`)
+4. Wait ~10 seconds for the health poll to update
+5. Verify the sidebar shows "Running" (green status dot)
+
+> **Note:** The sidebar polls the server every 10 seconds, so status changes may take a moment to appear.
+
+- [ ] **PASS** — sidebar reflects server start/stop state changes
+
+---
+
+### S.5: Multi-Instance (Optional)
+
+If you have multiple MDEMG projects, the sidebar supports switching between them. An instance picker dropdown appears when 2+ instances are detected.
+
+```bash
+# Create a second test project
+mkdir -p ~/mdemg-test-2 && cd ~/mdemg-test-2
+mdemg init --defaults
+```
+
+The sidebar auto-scans `~/*/` for `.mdemg/config.yaml` markers. Restart the sidebar to trigger a rescan, or wait for the next polling cycle.
+
+- [ ] **PASS** — instance picker visible with 2+ instances
+- [ ] **SKIP** — only one project configured
+
+---
+
 ## Cleanup / Teardown
 
 Run these steps to restore the machine to pre-test state:
@@ -1101,26 +1290,34 @@ mdemg stop
 sudo systemctl stop mdemg@$USER
 sudo systemctl disable mdemg@$USER 2>/dev/null
 
-# 2. Uninstall git hooks
+# 2. Close the sidebar app
+# Click tray icon → Quit, or kill the process:
+pkill -f mdemg-sidebar 2>/dev/null
+
+# 3. Uninstall git hooks
 cd ~/mdemg-test
 mdemg hooks uninstall
 
-# 3. Stop and remove Neo4j container
+# 4. Stop and remove Neo4j container
 mdemg db stop --remove
 
-# 4. Remove Docker volumes
+# 5. Remove Docker volumes
 docker volume ls -q --filter name=mdemg | xargs docker volume rm
 
-# 5. Remove test project
-rm -rf ~/mdemg-test
+# 6. Remove test project(s)
+rm -rf ~/mdemg-test ~/mdemg-test-2
 
-# 6. Remove MDEMG config (optional — only if uninstalling entirely)
+# 7. Remove MDEMG config (optional — only if uninstalling entirely)
 # rm -rf .mdemg
 
-# 7. Clean up test secret
+# 8. Clean up test secret
 mdemg config set-secret TEST_BETA_KEY ""
 
-# 8. Remove systemd units (optional — only if uninstalling entirely)
+# 9. Remove sidebar app (optional — only if uninstalling entirely)
+# AppImage: rm ~/mdemg-sidebar.AppImage
+# .deb: sudo dpkg --remove mdemg-sidebar
+
+# 10. Remove systemd units (optional — only if uninstalling entirely)
 # sudo systemctl disable mdemg@$USER mdemg-rsic@$USER.timer 2>/dev/null
 # sudo rm -f /etc/systemd/system/mdemg@.service /etc/systemd/system/mdemg-rsic@.service /etc/systemd/system/mdemg-rsic@.timer
 # sudo systemctl daemon-reload
@@ -1277,9 +1474,11 @@ sudo ufw allow 9999/tcp
 
 ---
 
-## Feedback & Issue Reporting
+## Feedback & Contributing
 
-### Filing Issues
+We welcome all feedback — bug reports, feature requests, and code contributions. Your experience as a beta tester is invaluable for making MDEMG production-ready on Linux.
+
+### Filing Bug Reports
 
 File issues at: **https://github.com/reh3376/mdemg/issues**
 
@@ -1287,9 +1486,9 @@ File issues at: **https://github.com/reh3376/mdemg/issues**
 
 **Labels:** Add `linux` and `beta-testing`
 
-### Include in Every Report
+**Copy and paste this template** into the issue body, filling in each section:
 
-```
+```markdown
 **Environment:**
 - Distro: (output of `cat /etc/os-release | grep PRETTY_NAME`)
 - Kernel: (output of `uname -r`)
@@ -1298,8 +1497,12 @@ File issues at: **https://github.com/reh3376/mdemg/issues**
 - Docker Engine version: (output of `docker --version`)
 - Shell: (output of `echo $SHELL`)
 - Init system: (systemd / openrc / other)
-- Installation method: curl installer / .deb / .rpm
+- Desktop env: (GNOME / KDE / XFCE / None)
+- Installation method: curl installer / manual tarball
+- Sidebar version: (if applicable — v0.1.0, AppImage or .deb)
 - SELinux status: (output of `getenforce` if applicable)
+
+**Test ID:** (e.g., T1.4, T3.7, S.2 — from this beta testing guide)
 
 **Steps to Reproduce:**
 1. <exact command>
@@ -1309,7 +1512,7 @@ File issues at: **https://github.com/reh3376/mdemg/issues**
 <what should have happened>
 
 **Actual Result:**
-<what actually happened — paste full output>
+<what actually happened — paste full terminal output>
 
 **Server Log (if applicable):**
 <output of: tail -50 .mdemg/logs/mdemg.log>
@@ -1317,6 +1520,93 @@ File issues at: **https://github.com/reh3376/mdemg/issues**
 **Journal Log (if using systemd):**
 <output of: journalctl -u mdemg@$USER --no-pager -n 50>
 ```
+
+### Filing Feature Requests
+
+If you think of improvements or missing features while testing, file them at the same issue tracker:
+
+**Title format:** `[Feature Request] <brief description>`
+
+Include:
+- What you want to do
+- Why it would be useful
+- How you imagine it working (even a rough idea helps)
+
+### Contributing Code
+
+We encourage beta testers to contribute fixes and improvements directly. Here's how:
+
+**1. Fork and clone the repo:**
+
+```bash
+# Fork via GitHub web UI first, then:
+git clone https://github.com/<your-username>/mdemg.git
+cd mdemg
+git remote add upstream https://github.com/reh3376/mdemg.git
+```
+
+**2. Create a feature branch:**
+
+```bash
+# Always branch from main
+git checkout main
+git pull upstream main
+git checkout -b fix/your-fix-description    # for bug fixes
+# or
+git checkout -b feat/your-feature-name      # for new features
+```
+
+**3. Make your changes, test them:**
+
+```bash
+# Build the CLI
+go build -o bin/mdemg ./cmd/mdemg
+
+# Run the linter
+golangci-lint run ./...
+
+# Run tests
+go test ./...
+
+# Test your changes manually
+./bin/mdemg version
+```
+
+**4. Commit and push:**
+
+```bash
+# Use conventional commit style:
+git add <files>
+git commit -m "fix: description of what you fixed"
+# or: feat: description of new feature
+# or: docs: description of doc improvement
+
+git push origin fix/your-fix-description
+```
+
+**5. Open a Pull Request:**
+
+Go to your fork on GitHub and click "Compare & pull request". Target the `main` branch on `reh3376/mdemg`. Include:
+- What the PR does
+- Which test ID (if any) it relates to
+- How you tested it
+
+**Branch naming conventions:**
+
+| Prefix | Purpose | Example |
+|--------|---------|---------|
+| `fix/` | Bug fixes | `fix/daemon-stale-pid` |
+| `feat/` | New features | `feat/rpm-package-support` |
+| `docs/` | Documentation improvements | `docs/clarify-init-wizard` |
+| `refactor/` | Code cleanup (no behavior change) | `refactor/config-loading` |
+
+> **Don't worry about being perfect.** A rough fix is better than no fix. We'll review every PR and help polish it. The goal is collaboration, not perfection.
+
+### Sidebar App Contributions
+
+The sidebar app is in a separate repo: **https://github.com/reh3376/mdemg-linux-sidebar**
+
+It uses Rust (Tauri v2) for the backend and vanilla JavaScript for the frontend. Same fork → branch → PR workflow applies.
 
 ### Severity Guide
 
@@ -1333,4 +1623,4 @@ File issues at: **https://github.com/reh3376/mdemg/issues**
 
 After completing all tiers, fill in the Results Summary table at the top of this document and submit it along with any issues filed.
 
-Thank you for beta testing MDEMG on Linux!
+Thank you for beta testing MDEMG on Linux! Your feedback directly shapes the product.
