@@ -64,17 +64,18 @@ You do NOT need to be an expert. The tests are designed as step-by-step commands
 
 | Tier | Section | Tests | Pass | Fail | Skip | Notes |
 |------|---------|-------|------|------|------|-------|
-| 1 | Installation & Core | 9 | 11* | 1| | |
+| 1 | Installation & Core | 9 | 11* | 1| Forgot to count| |
 | 2 | Ingestion | 8 | 2* | 3 | 3*| Something appears to be broken with embedding dimensions and Neo4j|
-| 3 | CMS & RSIC | 10 | 7 | 3 | | Some API calls appear to be nonexistent|
-| 4 | Backup & Maintenance | 5 | 4| 1| | Some API calls still broken|
-| 5 | Advanced | 11 | | | | |
-| S | Sidebar App | 5 | | | | |
-| **Total** | | **48** | | | | |
+| 3 | CMS & RSIC | 10 | 7 | 3 | Forgot to count| Some API calls appear to be nonexistent|
+| 4 | Backup & Maintenance | 5 | 4| 1| Forgot to count| Some API calls still broken|
+| 5 | Advanced | 11 |9** |4** | 3**| `systemd` service files do not appear to exist|
+| S | Sidebar App | 5 | 1| 3| 1| Sidebar app is broken.|
+| **Total** | | **48** | **34**| **15**| 7*| Data may be a bit mangled and inconsistent; sorry about that.|
 
 ---
 
 _*note: bad at counting stuff, may have made an error here_
+_**counted by number of checkboxes_
 
 ## Prerequisites
 
@@ -949,7 +950,7 @@ mdemg config list-secrets
 
 **Expected:** Secret is stored in the Linux system keyring (gnome-keyring, kwallet, or pass), retrieved correctly, and listed.
 
-- [ ] **PASS** — set/get/list secrets works via Linux keyring
+- [ ] **PASS** — set/get/list secrets works via Linux keyring (note: set and get work but list doesn't show new secret; setting shows warning `Warning: 'TEST_BETA_KEY' is not a known secret key (will not be auto-resolved)`)
 - [ ] **SKIP** — headless server, no keyring backend available (used .env fallback)
 
 ---
@@ -968,7 +969,7 @@ curl -s -X POST http://localhost:9999/v1/memory/retrieve \
 
 **Expected:** Returns retrieved memory nodes.
 
-- [ ] **PASS** — memory retrieval returns results
+- [ ] **PASS** — memory retrieval returns results (note: fails with `{"error":"invalid request body"}`)
 - [ ] **SKIP** — no embedding provider
 
 ---
@@ -981,7 +982,7 @@ mdemg demo
 
 **Expected:** Interactive demo runs, shows MDEMG capabilities. Follow on-screen prompts.
 
-- [ ] **PASS** — demo runs to completion
+- [x] **PASS** — demo runs to completion (demo exits with code 0 sucessfully, but all three queries fail with `Error: HTTP 400`)
 
 ---
 
@@ -993,7 +994,7 @@ mdemg extract-symbols --path .
 
 **Expected:** Extracts code symbols (functions, types, etc.) from files in the directory.
 
-- [ ] **PASS** — symbols extracted and listed
+- [ ] **PASS** — symbols extracted and listed (note: 1 file processed, 1 error, no symbols explicitly listed anywhere)
 
 ---
 
@@ -1005,7 +1006,7 @@ mdemg consolidate --space-id beta-test --dry-run
 
 **Expected:** Shows consolidation plan without executing.
 
-- [ ] **PASS** — consolidation dry run shows plan
+- [ ] **PASS** — consolidation dry run shows plan (note: fails with `Error: no operations selected - use --hidden-layer and/or --legacy flags`)
 
 ---
 
@@ -1017,7 +1018,7 @@ mdemg mcp
 
 **Expected:** MCP server starts and listens for JSON-RPC input on stdin. Press `Ctrl+C` to exit.
 
-- [ ] **PASS** — MCP server starts, responds to Ctrl+C
+- [x] **PASS** — MCP server starts, responds to Ctrl+C
 
 ---
 
@@ -1029,7 +1030,7 @@ mdemg upgrade --dry-run
 
 **Expected:** Reports current version and latest available version.
 
-- [ ] **PASS** — upgrade check runs and reports version information
+- [x] **PASS** — upgrade check runs and reports version information
 - [ ] **FAIL** — upgrade fails (note error message below)
 
 **Error message received (if failed):** _______________
@@ -1067,11 +1068,11 @@ mdemg space export --space-id beta-test --output /tmp/beta-test.mdemg --profile 
 mdemg space import --input /tmp/beta-test.mdemg --target-space beta-test-cli-import
 ```
 
-- [ ] **PASS** — API export preview returns valid JSON with estimated counts
-- [ ] **PASS** — API export returns chunks with `mdemg-space-transfer` format
-- [ ] **PASS** — API import accepts empty chunks and returns 200
-- [ ] **PASS** — CLI export creates `.mdemg` file
-- [ ] **PASS** — CLI import succeeds with target space
+- [x] **PASS** — API export preview returns valid JSON with estimated counts
+- [x] **PASS** — API export returns chunks with `mdemg-space-transfer` format
+- [x] **PASS** — API import accepts empty chunks and returns 200
+- [x] **PASS** — CLI export creates `.mdemg` file
+- [x] **PASS** — CLI import succeeds with target space
 
 ---
 
@@ -1137,8 +1138,8 @@ sudo systemctl disable mdemg@$USER
 sudo systemctl disable mdemg-rsic@$USER.timer
 ```
 
-- [ ] **PASS** — mdemg systemd service starts and serves health check
-- [ ] **PASS** — RSIC timer is registered and oneshot executes
+- [ ] **PASS** — mdemg systemd service starts and serves health check (skipped: `/usr/local/share/mdemg/systemd` does not exist)
+- [ ] **PASS** — RSIC timer is registered and oneshot executes (skipped: `/usr/local/share/mdemg/systemd` does not exist)
 - [ ] **SKIP** — non-systemd system (note init system: _______________)
 
 ---
@@ -1152,7 +1153,7 @@ mdemg teardown --dry-run
 
 **Expected:** Lists all artifacts that would be removed (server, Docker container/volume, hooks, MCP configs, `.mdemg/` directory, sidebar registration, systemd units if `--full`) without making any changes.
 
-- [ ] **PASS** — dry run lists artifacts without making changes
+- [x] **PASS** — dry run lists artifacts without making changes
 
 ---
 
@@ -1174,7 +1175,7 @@ ls .mdemg 2>/dev/null && echo "FAIL: .mdemg still exists" || echo "OK: .mdemg re
 mdemg hooks list 2>/dev/null || echo "OK: hooks check (expected to fail — no .mdemg)"
 ```
 
-- [ ] **PASS** — wizard completes all steps, teardown executes, all artifacts removed, backup created
+- [ ] **PASS** — wizard completes all steps, teardown executes, all artifacts removed, backup created (skipped: sidebar app broken)
 
 ---
 
@@ -1244,8 +1245,8 @@ mdemg-sidebar &
 > # Log out and back in
 > ```
 
-- [ ] **PASS** — sidebar installed and system tray icon visible
-- [ ] **Method used:** (A) AppImage / (B) .deb
+- [x] **PASS** — sidebar installed and system tray icon visible
+- [x] **Method used:** (A) AppImage / (B) .deb: .deb
 - [ ] **SKIP** — no desktop environment (headless server)
 
 ---
@@ -1265,7 +1266,7 @@ If the status dot is red (offline), verify the MDEMG server is running:
 curl -s http://localhost:9999/healthz
 ```
 
-- [ ] **PASS** — sidebar window opens, shows green status, 7 tabs visible
+- [ ] **PASS** — sidebar window opens, shows green status, 7 tabs visible (note: attempting to open the sidebar window yields the text `asset not found: index.html`; the close button must be clicked multiple times before the window closes)
 
 ---
 
@@ -1285,7 +1286,7 @@ Click through each tab and verify it loads data (not just "Loading..." forever):
 
 > **Tip:** Some tabs (Memory, Learning, RSIC) populate with more data after you've run ingestion and observation tests in Tiers 2-3. If a tab shows mostly zeros or "—", that's expected on a fresh install.
 
-- [ ] **PASS** — all 7 tabs load and display data (or reasonable empty state)
+- [ ] **PASS** — all 7 tabs load and display data (or reasonable empty state) (note: there are no tabs due to the aforementioned asset error)
 
 ---
 
@@ -1301,7 +1302,7 @@ From the **Status** tab, test the lifecycle controls:
 
 > **Note:** The sidebar polls the server every 10 seconds, so status changes may take a moment to appear.
 
-- [ ] **PASS** — sidebar reflects server start/stop state changes
+- [ ] **PASS** — sidebar reflects server start/stop state changes (note: there are no tabs due to the aforementioned asset error)
 
 ---
 
@@ -1318,7 +1319,7 @@ mdemg init --defaults
 The sidebar auto-scans `~/*/` for `.mdemg/config.yaml` markers. Restart the sidebar to trigger a rescan, or wait for the next polling cycle.
 
 - [ ] **PASS** — instance picker visible with 2+ instances
-- [ ] **SKIP** — only one project configured
+- [x] **SKIP** — only one project configured
 
 ---
 
