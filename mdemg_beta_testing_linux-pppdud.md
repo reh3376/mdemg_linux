@@ -94,8 +94,8 @@ uname -m
 # Must be x86_64 (amd64) or aarch64 (arm64)
 ```
 
-- [ ] Linux distro and version verified: _______________
-- [ ] Architecture verified: _______________
+- [x] Linux distro and version verified: Yes (Ubuntu 25.10)
+- [x] Architecture verified: Yes (amd64)
 
 ### Step 2: Install Required Tools
 
@@ -119,7 +119,7 @@ sudo dnf install -y curl tar jq
 sudo pacman -S curl tar jq
 ```
 
-- [ ] Required tools installed
+- [x] Required tools installed
 
 ### Step 3: Install Docker Engine
 
@@ -158,7 +158,7 @@ docker run --rm hello-world
 
 > **Note:** Docker Engine must be running whenever you use MDEMG. Enable it at boot with `sudo systemctl enable docker`. Unlike Docker Desktop on macOS, Docker Engine on Linux has no default memory cap — it uses available system memory.
 
-- [ ] Docker Engine installed and running, version: _______________
+- [x] Docker Engine installed and running, version: 29.1.3
 
 ### Step 4: Internet Access
 
@@ -172,7 +172,7 @@ The machine must have internet access to:
 curl -s https://api.github.com/repos/reh3376/mdemg/releases/latest | grep tag_name
 ```
 
-- [ ] Internet access confirmed
+- [x] Internet access confirmed
 
 ### Optional Prerequisites
 
@@ -186,7 +186,7 @@ Required for embedding-powered features: semantic recall, consolidation concept 
 2. Create an API key at [platform.openai.com/api-keys](https://platform.openai.com/api-keys)
 3. Save the key — you'll configure it during `mdemg init` or set it in a `.env` file
 
-- [ ] OpenAI API key obtained (or will skip embedding tests)
+- [x] OpenAI API key obtained (or will skip embedding tests): Don't have an API key, skipping embedding tests
 
 #### Ollama (Alternative to OpenAI)
 
@@ -205,7 +205,7 @@ ollama list
 
 > **Dimension warning:** OpenAI `text-embedding-3-large` produces 3072-dimension embeddings. Many Ollama models produce fewer dimensions. Run `mdemg embeddings check` after setup to verify. If dimensions don't match the existing vector index, you may need to recreate it.
 
-- [ ] Ollama installed (or using OpenAI, or will skip embedding tests)
+- [x] Ollama installed (or using OpenAI, or will skip embedding tests)
 
 #### Git (Tier 2: hooks, incremental ingest, test project setup)
 
@@ -226,7 +226,7 @@ sudo dnf install -y git
 sudo pacman -S git
 ```
 
-- [ ] Git installed, version: _______________
+- [x] Git installed, version: 2.51.0
 - [ ] **SKIP** — will skip git-dependent tests (T2.4, T2.5)
 
 ### Set Up Test Project
@@ -272,7 +272,7 @@ EOF
 
 > **Note:** Without Git, you will need to skip tests T2.4 (incremental ingest), T2.5 (hooks), and T1.3's init may not detect a git repo.
 
-- [ ] Test project directory created at `~/mdemg-test`
+- [x] Test project directory created at `~/mdemg-test`
 
 ### Prerequisites Checklist Summary
 
