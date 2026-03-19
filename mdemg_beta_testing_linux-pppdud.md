@@ -66,7 +66,7 @@ You do NOT need to be an expert. The tests are designed as step-by-step commands
 |------|---------|-------|------|------|------|-------|
 | 1 | Installation & Core | 9 | 11* | 1| | |
 | 2 | Ingestion | 8 | 2* | 3 | 3*| Something appears to be broken with embedding dimensions and Neo4j|
-| 3 | CMS & RSIC | 10 | | | | |
+| 3 | CMS & RSIC | 10 | 7 | 3 | | Some API calls appear to be nonexistent|
 | 4 | Backup & Maintenance | 5 | | | | |
 | 5 | Advanced | 11 | | | | |
 | S | Sidebar App | 5 | | | | |
@@ -694,7 +694,7 @@ curl -s -X POST http://localhost:9999/v1/conversation/observe \
 
 **Expected:** Both return JSON with `node_id`.
 
-- [ ] **PASS** — multiple obs_types accepted (decision, error)
+- [x] **PASS** — multiple obs_types accepted (decision, error)
 
 ---
 
@@ -712,7 +712,7 @@ curl -s -X POST http://localhost:9999/v1/conversation/resume \
 
 **Expected:** Returns previously observed content from the session.
 
-- [ ] **PASS** — resume returns prior observations
+- [x] **PASS** — resume returns prior observations
 
 ---
 
@@ -732,7 +732,7 @@ curl -s -X POST http://localhost:9999/v1/conversation/recall \
 
 **Expected:** Returns relevant observations ranked by semantic similarity.
 
-- [ ] **PASS** — recall returns relevant results
+- [ ] **PASS** — recall returns relevant results (note: failed with `{"error":"internal error during recall"}`)
 - [ ] **SKIP** — no embedding provider (degraded mode)
 
 ---
@@ -752,7 +752,7 @@ curl -s -X POST http://localhost:9999/v1/conversation/correct \
 
 **Expected:** Returns JSON confirming the correction was recorded.
 
-- [ ] **PASS** — correction accepted and stored
+- [ ] **PASS** — correction accepted and stored (note: failed with `{"error":"invalid request body"}`)
 
 ---
 
@@ -766,7 +766,7 @@ curl -s -X POST http://localhost:9999/v1/memory/consolidate \
 
 **Expected:** Returns consolidation results (hidden nodes created, edges formed). Without an LLM key, concept naming may be degraded but consolidation still runs.
 
-- [ ] **PASS** — consolidation completes
+- [x] **PASS** — consolidation completes
 
 ---
 
@@ -778,7 +778,7 @@ curl -s "http://localhost:9999/v1/conversation/session/health?space_id=beta-test
 
 **Expected:** Returns health metrics for the session (observation count, freshness, etc.).
 
-- [ ] **PASS** — session health returned with metrics
+- [x] **PASS** — session health returned with metrics (note: health score is 0.7)
 
 ---
 
@@ -792,7 +792,7 @@ curl -s -X POST http://localhost:9999/v1/self-improve/assess \
 
 **Expected:** Returns assessment with scores and recommendations.
 
-- [ ] **PASS** — assessment returned
+- [x] **PASS** — assessment returned
 
 ---
 
@@ -806,7 +806,7 @@ curl -s -X POST http://localhost:9999/v1/self-improve/cycle \
 
 **Expected:** Returns what the self-improvement cycle *would* do, without making changes.
 
-- [ ] **PASS** — dry run cycle returns plan
+- [x] **PASS** — dry run cycle returns plan (note: 0 actions executed???)
 
 ---
 
@@ -818,7 +818,7 @@ curl -s "http://localhost:9999/v1/self-improve/health?space_id=beta-test"
 
 **Expected:** Returns RSIC health metrics.
 
-- [ ] **PASS** — RSIC health returned
+- [x] **PASS** — RSIC health returned
 
 ---
 
@@ -841,7 +841,7 @@ curl -s -X POST http://localhost:9999/v1/learning/unfreeze \
 
 **Expected:** Freeze returns confirmation, status shows frozen=true, unfreeze returns confirmation.
 
-- [ ] **PASS** — freeze/status/unfreeze cycle completes
+- [ ] **PASS** — freeze/status/unfreeze cycle completes (freeze and unfreeze work fine but status fails with `404 page not found` error)
 
 ---
 
