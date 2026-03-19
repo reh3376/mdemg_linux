@@ -599,9 +599,7 @@ git add . && git commit -m "hook test"
 
 **Expected:** `hooks list` shows post-commit hook installed. After commit, hook triggers background ingest (check server logs for ingest activity).
 
-- [x] **PASS** — hooks install, list shows installed, commit triggers ingest (note: logs contains several entries saying something similar to ``warning: FindSimilarNodes failed for stale node n_033cf7665e6e1c9e2c66: Neo4jError: Neo.ClientError.Procedure.ProcedureCallFailed (Failed to invoke procedure `db.index.vector.qucurl -s -X POST http://localhost:9999/v1/backup/trigger \
-  -H "Content-Type: application/json" \
-  -d '{"space_id": "beta-test"}'eryNodes`: Caused by: java.lang.IllegalArgumentException: Index query vector has 768 dimensions, but indexed vectors have 3072.``)
+- [x] **PASS** — hooks install, list shows installed, commit triggers ingest (note: logs contains several entries saying something similar to ``warning: FindSimilarNodes failed for stale node n_033cf7665e6e1c9e2c66: Neo4jError: Neo.ClientError.Procedure.ProcedureCallFailed (Failed to invoke procedure `db.index.vector.queryNodes`: Caused by: java.lang.IllegalArgumentException: Index query vector has 768 dimensions, but indexed vectors have 3072.``)
 
 - [ ] **SKIP** — Git not installed
 
