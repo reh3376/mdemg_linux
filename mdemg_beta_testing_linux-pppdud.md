@@ -64,7 +64,7 @@ You do NOT need to be an expert. The tests are designed as step-by-step commands
 
 | Tier | Section | Tests | Pass | Fail | Skip | Notes |
 |------|---------|-------|------|------|------|-------|
-| 1 | Installation & Core | 9 | | | | |
+| 1 | Installation & Core | 9 | 11* | 1| | |
 | 2 | Ingestion | 8 | | | | |
 | 3 | CMS & RSIC | 10 | | | | |
 | 4 | Backup & Maintenance | 5 | | | | |
@@ -73,6 +73,8 @@ You do NOT need to be an expert. The tests are designed as step-by-step commands
 | **Total** | | **48** | | | | |
 
 ---
+
+_*note: bad at counting stuff, may have made an error here_
 
 ## Prerequisites
 
@@ -350,8 +352,8 @@ echo 'export PATH="/usr/local/bin:$PATH"' >> ~/.bashrc
 source ~/.bashrc
 ```
 
-- [ ] **PASS** — installation completed, `mdemg` accessible from terminal
-- [ ] **Method used:** (A) curl installer / (B) manual tarball
+- [x] **PASS** — installation completed, `mdemg` accessible from terminal (note: installation had an error at the end, see #4)
+- [x] **Method used:** (A) curl installer / (B) manual tarball: curl installer
 
 ---
 
@@ -371,7 +373,7 @@ mdemg v0.2.15
   os/arch: linux/amd64    # or linux/arm64
 ```
 
-- [ ] **PASS** — version displayed with `linux/amd64` or `linux/arm64`
+- [x] **PASS** — version displayed with `linux/amd64` or `linux/arm64` (note: actual version is `0.2.16` as of writing)
 
 ---
 
@@ -391,7 +393,7 @@ mdemg init
 ls -la .mdemg/config.yaml .mdemgignore
 ```
 
-- [ ] **PASS** — both files exist and contain valid content
+- [x] **PASS** — both files exist and contain valid content (note: initializing `mdemg` is quite confusing towards the end; when it starts up the container, it freezes for a moment as though it's meant to stay open indefinitely, and then exits shortly after)
 
 ---
 
@@ -418,7 +420,7 @@ mdemg db start
 docker ps --filter "name=mdemg-neo4j" --format "{{.Status}}"
 ```
 
-- [ ] **PASS** — container starts, status shows running, stops cleanly, restarts
+- [x] **PASS** — container starts, status shows running, stops cleanly, restarts
 
 ---
 
@@ -430,7 +432,7 @@ mdemg db migrate
 
 **Expected:** Migrations apply without errors. Output shows "applied N migrations" or "already up to date."
 
-- [ ] **PASS** — migrations complete successfully
+- [x] **PASS** — migrations complete successfully (note: database already up to date)
 
 ---
 
@@ -459,8 +461,8 @@ Leave this terminal running. Continue tests in the original terminal.
 
 **Record which method worked:**
 
-- [ ] **PASS (daemon)** — `mdemg start` worked
-- [ ] **PASS (foreground)** — `mdemg serve` worked (daemon failed)
+- [ ] **PASS (daemon)** — `mdemg start` worked (note: daemon did _not_ work due to a `Note: port file not yet available — server may still be starting` error)
+- [x] **PASS (foreground)** — `mdemg serve` worked (daemon failed)
 - [ ] **FAIL** — neither method started the server
 
 ---
@@ -477,7 +479,7 @@ curl -s http://localhost:9999/readyz
 
 **Expected:** Both return `{"status":"ok"}` (or similar JSON with healthy status).
 
-- [ ] **PASS** — both endpoints respond with OK status
+- [x] **PASS** — both endpoints respond with OK status
 
 ---
 
@@ -490,7 +492,7 @@ mdemg config validate
 
 **Expected:** `config show` displays effective configuration with source annotations (yaml/env/default). `config validate` probes Neo4j connectivity and reports results.
 
-- [ ] **PASS** — config show displays settings, validate confirms Neo4j reachable
+- [x] **PASS** — config show displays settings, validate confirms Neo4j reachable
 
 ---
 
@@ -504,7 +506,7 @@ mdemg embeddings check
 
 **Expected (without key):** Reports "no embedding provider configured" or similar warning. This is acceptable — skip to Tier 2.
 
-- [ ] **PASS** — embedding check runs and reports status
+- [x] **PASS** — embedding check runs and reports status (note: this seems to be working when using the `nomic-embed-text` model on Ollama even though it's supposed to fail???)
 - [ ] **SKIP** — no embedding provider configured (note in results)
 
 ---
