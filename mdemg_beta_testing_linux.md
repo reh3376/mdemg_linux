@@ -256,7 +256,7 @@ These docs cover everything you're testing. Use them for troubleshooting, unders
 
 ### T1.1: Installation
 
-Choose one of three installation methods:
+Choose one of the available installation methods:
 
 **Method A — curl installer (recommended):**
 
@@ -264,32 +264,21 @@ Choose one of three installation methods:
 curl -fsSL https://raw.githubusercontent.com/reh3376/mdemg_linux/main/install.sh | bash
 ```
 
-**Method B — .deb package (Debian/Ubuntu):**
+**Method B — manual tarball:**
 
 ```bash
-# Download the latest .deb
-curl -fsSL -o /tmp/mdemg.deb \
-  "https://github.com/reh3376/mdemg/releases/latest/download/mdemg_$(uname -m).deb"
+# Download the latest tarball for your architecture
+ARCH=$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/')
+VERSION=$(curl -fsSL https://api.github.com/repos/reh3376/mdemg/releases/latest | grep tag_name | sed -E 's/.*"([^"]+)".*/\1/')
+curl -fsSL -o /tmp/mdemg.tar.gz \
+  "https://github.com/reh3376/mdemg/releases/download/${VERSION}/mdemg_${VERSION#v}_linux_${ARCH}.tar.gz"
 
-# Install
-sudo dpkg -i /tmp/mdemg.deb
-
-# Fix dependencies if needed
-sudo apt install -f
+# Extract and install manually
+tar -xzf /tmp/mdemg.tar.gz -C /tmp/mdemg-extract
+sudo install -m 755 /tmp/mdemg-extract/mdemg /usr/local/bin/mdemg
 ```
 
-**Method C — .rpm package (Fedora/RHEL/CentOS):**
-
-```bash
-# Download the latest .rpm
-curl -fsSL -o /tmp/mdemg.rpm \
-  "https://github.com/reh3376/mdemg/releases/latest/download/mdemg_$(uname -m).rpm"
-
-# Install
-sudo rpm -i /tmp/mdemg.rpm
-# Or with dnf:
-sudo dnf install /tmp/mdemg.rpm
-```
+> **Note:** .deb and .rpm packages are planned for a future release but are not yet available.
 
 **Expected:** The `mdemg` binary is installed to `/usr/local/bin/mdemg`. No errors.
 
@@ -310,7 +299,7 @@ source ~/.bashrc
 ```
 
 - [ ] **PASS** — installation completed, `mdemg` accessible from terminal
-- [ ] **Method used:** (A) curl installer / (B) .deb / (C) .rpm
+- [ ] **Method used:** (A) curl installer / (B) manual tarball
 
 ---
 

@@ -267,14 +267,13 @@ do_install() {
     fi
 
     # Install systemd units (if systemd is available)
+    # Units are bundled in the release tarball under systemd/ (goreleaser archives.files)
     if [[ -d /run/systemd/system ]]; then
-        info "Installing systemd service files..."
-        local script_dir
-        script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-        if [[ -f "${script_dir}/systemd/mdemg.service" ]]; then
-            sudo install -m 644 "${script_dir}/systemd/mdemg.service" "${SYSTEMD_DIR}/mdemg@.service"
-            sudo install -m 644 "${script_dir}/systemd/mdemg-rsic.service" "${SYSTEMD_DIR}/mdemg-rsic@.service"
-            sudo install -m 644 "${script_dir}/systemd/mdemg-rsic.timer" "${SYSTEMD_DIR}/mdemg-rsic@.timer"
+        if [[ -f "${tmpdir}/systemd/mdemg.service" ]]; then
+            info "Installing systemd service files..."
+            sudo install -m 644 "${tmpdir}/systemd/mdemg.service" "${SYSTEMD_DIR}/mdemg@.service"
+            sudo install -m 644 "${tmpdir}/systemd/mdemg-rsic.service" "${SYSTEMD_DIR}/mdemg-rsic@.service"
+            sudo install -m 644 "${tmpdir}/systemd/mdemg-rsic.timer" "${SYSTEMD_DIR}/mdemg-rsic@.timer"
             sudo systemctl daemon-reload
             info "Enable with: sudo systemctl enable --now mdemg@\$USER"
         fi

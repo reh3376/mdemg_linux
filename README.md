@@ -170,52 +170,30 @@ less install.sh   # Review the script
 bash install.sh
 ```
 
-### Method B — Debian/Ubuntu (.deb)
+### Method B — Manual Tarball
 
 ```bash
-# Download the latest .deb
-curl -fsSL -o mdemg.deb https://github.com/reh3376/mdemg/releases/latest/download/mdemg_linux_amd64.deb
+# Detect architecture
+ARCH=$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/')
 
-# Install
-sudo dpkg -i mdemg.deb
+# Download the latest tarball
+VERSION=$(curl -fsSL https://api.github.com/repos/reh3376/mdemg/releases/latest | grep tag_name | sed -E 's/.*"([^"]+)".*/\1/')
+curl -fsSL -o /tmp/mdemg.tar.gz \
+  "https://github.com/reh3376/mdemg/releases/download/${VERSION}/mdemg_${VERSION#v}_linux_${ARCH}.tar.gz"
 
-# If dependencies are missing:
-sudo apt-get install -f
-```
+# Extract and install
+mkdir -p /tmp/mdemg-extract && tar -xzf /tmp/mdemg.tar.gz -C /tmp/mdemg-extract
+sudo install -m 755 /tmp/mdemg-extract/mdemg /usr/local/bin/mdemg
 
-### Method C — Fedora/RHEL (.rpm)
-
-```bash
-# Download the latest .rpm
-curl -fsSL -o mdemg.rpm https://github.com/reh3376/mdemg/releases/latest/download/mdemg_linux_amd64.rpm
-
-# Install
-sudo rpm -i mdemg.rpm
-# Or with dnf:
-sudo dnf install ./mdemg.rpm
-```
-
-### Method D — AppImage (any distro)
-
-```bash
-# Download
-curl -fsSL -o mdemg.AppImage https://github.com/reh3376/mdemg/releases/latest/download/mdemg_linux_amd64.AppImage
-
-# Make executable and run
-chmod +x mdemg.AppImage
-sudo mv mdemg.AppImage /usr/local/bin/mdemg
-```
-
-### Method E — Manual Tarball
-
-```bash
-# Download and extract
-curl -fsSL https://github.com/reh3376/mdemg/releases/latest/download/mdemg_linux_amd64.tar.gz | \
-  sudo tar -xz -C /usr/local/bin/ mdemg
+# Optional: install man pages
+sudo mkdir -p /usr/local/share/man/man1
+sudo cp /tmp/mdemg-extract/man/man1/*.1 /usr/local/share/man/man1/ 2>/dev/null || true
 
 # Verify
 mdemg version
 ```
+
+> **Coming soon:** .deb and .rpm packages are planned for a future release.
 
 **Verify the installation:**
 
