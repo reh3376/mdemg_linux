@@ -6,7 +6,7 @@
 
 **Tester:** PPPDUD
 
-**Machine specs:** amd64 32-thread with NVIDIA 5060TI GPU
+**Machine specs:** amd64 32-thread CPU with NVIDIA 5060TI GPU
 
 **Distro:** Ubuntu 25.10 (output of `cat /etc/os-release | grep PRETTY_NAME`)
 
