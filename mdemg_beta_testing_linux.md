@@ -1183,7 +1183,7 @@ Choose one installation method:
 ```bash
 # Download the AppImage
 curl -fsSL -o ~/mdemg-sidebar.AppImage \
-  "https://github.com/reh3376/mdemg-linux-sidebar/releases/download/v0.1.0/mdemg-sidebar_0.1.0_amd64.AppImage"
+  "https://github.com/reh3376/mdemg-linux-sidebar/releases/download/v0.2.0/mdemg-sidebar_0.2.0_amd64.AppImage"
 
 # Make it executable
 chmod +x ~/mdemg-sidebar.AppImage
@@ -1211,7 +1211,7 @@ chmod +x ~/mdemg-sidebar.AppImage
 ```bash
 # Download the .deb
 curl -fsSL -o /tmp/mdemg-sidebar.deb \
-  "https://github.com/reh3376/mdemg-linux-sidebar/releases/download/v0.1.0/mdemg-sidebar_0.1.0_amd64.deb"
+  "https://github.com/reh3376/mdemg-linux-sidebar/releases/download/v0.2.0/mdemg-sidebar_0.2.0_amd64.deb"
 
 # Install
 sudo dpkg -i /tmp/mdemg-sidebar.deb
@@ -1269,7 +1269,7 @@ Click through each tab and verify it loads data (not just "Loading..." forever):
 | **Memory** | Total observations count, layer breakdown (L0-L5), health score |
 | **Learning** | Hebbian edge counts, learning phase (cold/learning/warm/saturated) |
 | **Neo4j** | Database version, node/edge counts, connection pool stats |
-| **Config** | Server endpoint, space ID, key-value config pairs |
+| **Config** | Server endpoint, space ID, key-value config pairs, database management (Backup/Migrate), Instance Removal section |
 | **Logs** | Recent server log lines (may be empty if server just started) |
 | **RSIC** | Engine status, watchdog health, recent cycle history |
 
@@ -1549,7 +1549,7 @@ File issues at: **https://github.com/reh3376/mdemg/issues**
 - Init system: (systemd / openrc / other)
 - Desktop env: (GNOME / KDE / XFCE / None)
 - Installation method: curl installer / manual tarball
-- Sidebar version: (if applicable — v0.1.0, AppImage or .deb)
+- Sidebar version: (if applicable — v0.2.0, AppImage or .deb)
 - SELinux status: (output of `getenforce` if applicable)
 
 **Test ID:** (e.g., T1.4, T3.7, S.2 — from this beta testing guide)
