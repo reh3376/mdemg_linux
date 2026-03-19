@@ -65,7 +65,7 @@ You do NOT need to be an expert. The tests are designed as step-by-step commands
 | Tier | Section | Tests | Pass | Fail | Skip | Notes |
 |------|---------|-------|------|------|------|-------|
 | 1 | Installation & Core | 9 | 11* | 1| | |
-| 2 | Ingestion | 8 | | | | |
+| 2 | Ingestion | 8 | 2* | 3 | 3*| Something appears to be broken with embedding dimensions and Neo4j|
 | 3 | CMS & RSIC | 10 | | | | |
 | 4 | Backup & Maintenance | 5 | | | | |
 | 5 | Advanced | 11 | | | | |
@@ -523,7 +523,7 @@ mdemg ingest --path . --space-id beta-test
 
 **Expected:** Ingests files from the test project. Output shows files processed, observations created.
 
-- [ ] **PASS** — ingest completes, shows file count and observations
+- [ ] **PASS** — ingest completes, shows file count and observations (exits with no errors, consolidation says 0 created)
 
 ---
 
@@ -542,7 +542,7 @@ curl -s -X POST http://localhost:9999/v1/conversation/observe \
 
 **Expected:** Returns JSON with `node_id` and `status` fields.
 
-- [ ] **PASS** — observation created, node_id returned
+- [ ] **PASS** — observation created, node_id returned (note: observation was created and node_id was returned, but no `status` field was sent)
 
 ---
 
@@ -562,7 +562,7 @@ curl -s -X POST http://localhost:9999/v1/memory/ingest \
 
 **Expected:** Returns JSON with count of ingested nodes.
 
-- [ ] **PASS** — batch ingest returns success with node count
+- [ ] **PASS** — batch ingest returns success with node count (note: returns `{"error":"invalid request body"}`)
 
 ---
 
@@ -579,7 +579,7 @@ mdemg ingest --path . --space-id beta-test --incremental --since HEAD~1
 
 **Expected:** Only the modified file is re-ingested.
 
-- [ ] **PASS** — incremental ingest processes only changed files
+- [ ] **PASS** — incremental ingest processes only changed files (not sure whether to pass or fail? two files ingested, zero created or updates)
 
 ---
 
@@ -599,7 +599,8 @@ git add . && git commit -m "hook test"
 
 **Expected:** `hooks list` shows post-commit hook installed. After commit, hook triggers background ingest (check server logs for ingest activity).
 
-- [ ] **PASS** — hooks install, list shows installed, commit triggers ingest
+- [x] **PASS** — hooks install, list shows installed, commit triggers ingest (note: logs contains several entries saying something similar to ``warning: FindSimilarNodes failed for stale node n_033cf7665e6e1c9e2c66: Neo4jError: Neo.ClientError.Procedure.ProcedureCallFailed (Failed to invoke procedure `db.index.vector.queryNodes`: Caused by: java.lang.IllegalArgumentException: Index query vector has 768 dimensions, but indexed vectors have 3072.``)
+
 - [ ] **SKIP** — Git not installed
 
 ---
@@ -623,7 +624,7 @@ echo "// New file for watcher test" > watcher_test.go
 
 Press `Ctrl+C` in the watcher terminal when done.
 
-- [ ] **PASS** — watcher detects file creation and ingests it
+- [x] **PASS** — watcher detects file creation and ingests it
 
 ---
 
@@ -644,7 +645,7 @@ curl -s -X POST http://localhost:9999/v1/scraper/jobs \
 **Expected:** Returns a job ID. Check status with `GET /v1/scraper/jobs/{job_id}`.
 
 - [ ] **PASS** — scraper job created
-- [ ] **SKIP** — no URL configured
+- [x] **SKIP** — no URL configured (scraper not enabled???)
 
 ---
 
@@ -659,7 +660,7 @@ curl -s http://localhost:9999/v1/linear/issues?space_id=beta-test
 **Expected:** Returns issues list or empty array.
 
 - [ ] **PASS** — Linear endpoint responds
-- [ ] **SKIP** — no LINEAR_API_KEY configured
+- [x] **SKIP** — no LINEAR_API_KEY configured
 
 ---
 
