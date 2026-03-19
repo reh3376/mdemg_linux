@@ -1,6 +1,6 @@
 # MDEMG Linux Beta Testing Guide
 
-**Version under test:** v0.2.15 (CLI) / v0.1.0 (Sidebar)
+**Version under test:** v0.2.15 (CLI) / v0.2.0 (Sidebar)
 **Date:** _______________
 **Tester:** _______________
 **Machine specs:** _______________
@@ -61,9 +61,9 @@ You do NOT need to be an expert. The tests are designed as step-by-step commands
 | 2 | Ingestion | 8 | | | | |
 | 3 | CMS & RSIC | 10 | | | | |
 | 4 | Backup & Maintenance | 5 | | | | |
-| 5 | Advanced | 9 | | | | |
+| 5 | Advanced | 11 | | | | |
 | S | Sidebar App | 5 | | | | |
-| **Total** | | **46** | | | | |
+| **Total** | | **48** | | | | |
 
 ---
 
@@ -1133,6 +1133,40 @@ sudo systemctl disable mdemg-rsic@$USER.timer
 
 ---
 
+### T5.10: Teardown Dry Run
+
+```bash
+cd ~/mdemg-test
+mdemg teardown --dry-run
+```
+
+**Expected:** Lists all artifacts that would be removed (server, Docker container/volume, hooks, MCP configs, `.mdemg/` directory, sidebar registration, systemd units if `--full`) without making any changes.
+
+- [ ] **PASS** — dry run lists artifacts without making changes
+
+---
+
+### T5.11: Teardown Execute
+
+> **Warning:** This removes all MDEMG artifacts for the test project. Run this test LAST (after Sidebar tests) — it replaces the manual cleanup steps below.
+
+```bash
+cd ~/mdemg-test
+mdemg teardown --yes
+```
+
+**Expected:** Server stops, Docker container/volume removed, hooks uninstalled, MCP configs cleaned, `.mdemg/` backed up and removed, sidebar deregistered. Output shows each phase completing.
+
+```bash
+# Verify cleanup
+ls .mdemg 2>/dev/null && echo "FAIL: .mdemg still exists" || echo "OK: .mdemg removed"
+mdemg hooks list 2>/dev/null || echo "OK: hooks check (expected to fail — no .mdemg)"
+```
+
+- [ ] **PASS** — teardown completes, all artifacts removed, backup created
+
+---
+
 ## Sidebar App: MDEMG Desktop Companion (~15 min)
 
 > **Requires:** A Linux desktop environment (GNOME, KDE, XFCE, Cinnamon, MATE, etc.) with a system tray. The sidebar does NOT work on headless servers or in SSH sessions. The MDEMG server must be running (completed Tier 1 above).
@@ -1279,7 +1313,18 @@ The sidebar auto-scans `~/*/` for `.mdemg/config.yaml` markers. Restart the side
 
 ## Cleanup / Teardown
 
-Run these steps to restore the machine to pre-test state:
+### Recommended: Use `mdemg teardown` (if T5.11 was not run)
+
+```bash
+cd ~/mdemg-test
+mdemg teardown --yes
+```
+
+This single command handles steps 1-8 below automatically: stops the server, removes Docker container/volume, uninstalls hooks, cleans MCP/IDE configs, backs up and removes `.mdemg/`, and deregisters from the sidebar app.
+
+### Manual cleanup (fallback)
+
+If `mdemg teardown` is not available or failed:
 
 ```bash
 # 1. Stop the server
@@ -1304,23 +1349,27 @@ mdemg db stop --remove
 # 5. Remove Docker volumes
 docker volume ls -q --filter name=mdemg | xargs docker volume rm
 
-# 6. Remove test project(s)
-rm -rf ~/mdemg-test ~/mdemg-test-2
-
-# 7. Remove MDEMG config (optional — only if uninstalling entirely)
+# 6. Remove MDEMG config (optional — only if uninstalling entirely)
 # rm -rf .mdemg
 
-# 8. Clean up test secret
+# 7. Clean up test secret
 mdemg config set-secret TEST_BETA_KEY ""
 
-# 9. Remove sidebar app (optional — only if uninstalling entirely)
+# 8. Remove sidebar app (optional — only if uninstalling entirely)
 # AppImage: rm ~/mdemg-sidebar.AppImage
 # .deb: sudo dpkg --remove mdemg-sidebar
 
-# 10. Remove systemd units (optional — only if uninstalling entirely)
+# 9. Remove systemd units (optional — only if uninstalling entirely)
 # sudo systemctl disable mdemg@$USER mdemg-rsic@$USER.timer 2>/dev/null
 # sudo rm -f /etc/systemd/system/mdemg@.service /etc/systemd/system/mdemg-rsic@.service /etc/systemd/system/mdemg-rsic@.timer
 # sudo systemctl daemon-reload
+```
+
+### Final cleanup (all methods)
+
+```bash
+# Remove test project(s)
+rm -rf ~/mdemg-test ~/mdemg-test-2
 ```
 
 ---
