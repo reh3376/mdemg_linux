@@ -531,7 +531,7 @@ curl -s -X POST http://localhost:9999/v1/conversation/observe \
   }'
 ```
 
-**Expected:** Returns JSON with `node_id` and `status` fields.
+**Expected:** Returns JSON with `node_id` field confirming the observation was stored.
 
 - [ ] **PASS** — observation created, node_id returned
 
@@ -540,13 +540,13 @@ curl -s -X POST http://localhost:9999/v1/conversation/observe \
 ### T2.3: Batch Ingest (API)
 
 ```bash
-curl -s -X POST http://localhost:9999/v1/memory/ingest \
+curl -s -X POST http://localhost:9999/v1/memory/ingest/batch \
   -H "Content-Type: application/json" \
   -d '{
     "space_id": "beta-test",
-    "nodes": [
-      {"content": "Linux batch test item 1", "metadata": {"source": "beta-test"}},
-      {"content": "Linux batch test item 2", "metadata": {"source": "beta-test"}}
+    "observations": [
+      {"content": "Linux batch test item 1", "source": "beta-test", "timestamp": "2026-01-01T00:00:00Z"},
+      {"content": "Linux batch test item 2", "source": "beta-test", "timestamp": "2026-01-01T00:01:00Z"}
     ]
   }'
 ```
@@ -735,8 +735,8 @@ curl -s -X POST http://localhost:9999/v1/conversation/correct \
   -d '{
     "space_id": "beta-test",
     "session_id": "beta-session",
-    "content": "Correction: dependency xyz is actually version 2.0",
-    "obs_type": "correction"
+    "incorrect": "dependency xyz is version 1.0",
+    "correct": "dependency xyz is actually version 2.0"
   }'
 ```
 
@@ -821,7 +821,7 @@ curl -s -X POST http://localhost:9999/v1/learning/freeze \
   -d '{"space_id": "beta-test", "reason": "beta testing", "frozen_by": "tester"}'
 
 # Check status
-curl -s "http://localhost:9999/v1/learning/status?space_id=beta-test"
+curl -s "http://localhost:9999/v1/learning/freeze/status?space_id=beta-test"
 
 # Unfreeze
 curl -s -X POST http://localhost:9999/v1/learning/unfreeze \
@@ -842,7 +842,7 @@ curl -s -X POST http://localhost:9999/v1/learning/unfreeze \
 ```bash
 curl -s -X POST http://localhost:9999/v1/backup/trigger \
   -H "Content-Type: application/json" \
-  -d '{"space_id": "beta-test"}'
+  -d '{"type": "full", "space_ids": ["beta-test"]}'
 ```
 
 **Expected:** Returns backup job ID or confirmation.
@@ -951,7 +951,7 @@ curl -s -X POST http://localhost:9999/v1/memory/retrieve \
   -H "Content-Type: application/json" \
   -d '{
     "space_id": "beta-test",
-    "query": "beta testing",
+    "query_text": "beta testing",
     "top_k": 5
   }'
 ```
@@ -990,7 +990,7 @@ mdemg extract-symbols --path .
 ### T5.5: Consolidation (CLI)
 
 ```bash
-mdemg consolidate --space-id beta-test --dry-run
+mdemg consolidate --space-id beta-test --hidden-layer --dry-run
 ```
 
 **Expected:** Shows consolidation plan without executing.
