@@ -189,14 +189,14 @@ Local-only alternative to OpenAI for embeddings. No API key or internet required
 # Install via official script
 curl -fsSL https://ollama.com/install.sh | sh
 
-# Pull an embedding model
-ollama pull nomic-embed-text
+# Pull the recommended embedding model (~4.9 GB)
+ollama pull qwen3-embedding:8b
 
 # Verify
 ollama list
 ```
 
-> **Dimension warning:** OpenAI `text-embedding-3-large` produces 3072-dimension embeddings. Many Ollama models produce fewer dimensions. Run `mdemg embeddings check` after setup to verify. If dimensions don't match the existing vector index, you may need to recreate it.
+> **Dimension note:** MDEMG requires 3072-dimension embeddings. `qwen3-embedding:8b` produces 4096 dimensions which are automatically truncated to 3072 via MRL. Models with fewer than 3072 native dimensions (e.g., `nomic-embed-text` at 768) are **incompatible** and will cause vector operations to fail. Run `mdemg embeddings check` after setup to verify.
 
 - [ ] Ollama installed (or using OpenAI, or will skip embedding tests)
 
