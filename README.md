@@ -156,7 +156,41 @@ git --version
 
 ## Installation
 
-### Method A — Curl Installer (recommended)
+### Method A — APT Repository (recommended for Debian/Ubuntu)
+
+```bash
+# One-time setup: add GPG key and repository
+curl -fsSL https://reh3376.github.io/apt-mdemg/mdemg-archive-keyring.gpg | \
+  sudo gpg --dearmor -o /usr/share/keyrings/mdemg-archive-keyring.gpg
+
+echo "deb [signed-by=/usr/share/keyrings/mdemg-archive-keyring.gpg] \
+  https://reh3376.github.io/apt-mdemg stable main" | \
+  sudo tee /etc/apt/sources.list.d/mdemg.list
+
+# Install
+sudo apt update
+sudo apt install mdemg
+
+# Sidebar companion (optional)
+sudo apt install mdemg-sidebar
+```
+
+Or use the setup script:
+
+```bash
+curl -fsSL https://reh3376.github.io/apt-mdemg/setup.sh | sudo sh
+sudo apt install mdemg
+```
+
+Upgrades are handled by the standard package manager:
+
+```bash
+sudo apt update && sudo apt upgrade mdemg
+```
+
+> **Note:** Docker is required at runtime (`mdemg db start` runs Neo4j via Docker) but is listed as a _recommendation_, not a hard dependency. The package installs successfully without Docker, but you must install Docker before using MDEMG.
+
+### Method B — Curl Installer
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/reh3376/mdemg_linux/main/install.sh | bash
@@ -170,7 +204,7 @@ less install.sh   # Review the script
 bash install.sh
 ```
 
-### Method B — Manual Tarball
+### Method C — Manual Tarball
 
 ```bash
 # Detect architecture
@@ -193,7 +227,7 @@ sudo cp /tmp/mdemg-extract/man/man1/*.1 /usr/local/share/man/man1/ 2>/dev/null |
 mdemg version
 ```
 
-> **Coming soon:** .deb and .rpm packages are planned for a future release.
+> **Arch Linux users:** See the [AUR PKGBUILD](https://github.com/reh3376/mdemg/tree/main/packaging/aur) for `yay -S mdemg`.
 
 **Verify the installation:**
 
@@ -755,6 +789,16 @@ mdemg config set-secret OPENAI_API_KEY sk-...
 
 ## Upgrading
 
+### Via APT (recommended)
+
+```bash
+sudo apt update && sudo apt upgrade mdemg
+
+# Apply any new database migrations
+mdemg restart
+mdemg db migrate
+```
+
 ### Via curl installer
 
 ```bash
@@ -770,19 +814,23 @@ mdemg restart
 mdemg db migrate
 ```
 
-### Via package manager
-
-```bash
-# Debian/Ubuntu — download new .deb and install
-sudo dpkg -i mdemg_new_version.deb
-
-# Fedora/RHEL — download new .rpm and upgrade
-sudo rpm -U mdemg_new_version.rpm
-```
-
 ---
 
 ## Uninstall
+
+### Via APT
+
+```bash
+# Remove (keeps config files)
+sudo apt remove mdemg
+
+# Remove and purge config
+sudo apt purge mdemg
+
+# Remove APT repository
+sudo rm -f /etc/apt/sources.list.d/mdemg.list
+sudo rm -f /usr/share/keyrings/mdemg-archive-keyring.gpg
+```
 
 ### Via curl installer
 
@@ -815,15 +863,10 @@ sudo systemctl daemon-reload
 rm -rf .mdemg
 ```
 
-### Via package manager
+### Via Arch Linux (AUR)
 
 ```bash
-# Debian/Ubuntu
-sudo apt remove mdemg
-
-# Fedora/RHEL
-sudo dnf remove mdemg
-# Or: sudo rpm -e mdemg
+yay -R mdemg
 ```
 
 ---
