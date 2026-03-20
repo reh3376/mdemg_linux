@@ -22,7 +22,7 @@ SyslogIdentifier=mdemg
 NoNewPrivileges=true
 ProtectSystem=strict
 ProtectHome=read-only
-ReadWritePaths=%h/.mdemg %h/.config/mdemg
+ReadWritePaths=%h/.mdemg
 PrivateTmp=true
 
 [Install]

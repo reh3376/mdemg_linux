@@ -1,8 +1,8 @@
 [Unit]
 Description=MDEMG RSIC Self-Improvement Cycle
 Documentation=https://github.com/reh3376/mdemg_linux
-After=mdemg.service
-Requires=mdemg.service
+After=mdemg@%i.service
+Requires=mdemg@%i.service
 
 [Service]
 Type=oneshot
