@@ -1,12 +1,19 @@
 # MDEMG Linux Beta Testing Guide
 
 **Version under test:** v0.2.15 (CLI) / v0.2.0 (Sidebar)
+
 **Date:** _______________
+
 **Tester:** _______________
+
 **Machine specs:** _______________
+
 **Distro:** _______________ (output of `cat /etc/os-release | grep PRETTY_NAME`)
+
 **Kernel:** _______________ (output of `uname -r`)
+
 **Docker Engine version:** _______________
+
 **Desktop Environment:** _______________ (GNOME / KDE / XFCE / None)
 
 ---
