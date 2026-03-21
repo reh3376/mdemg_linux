@@ -299,6 +299,7 @@ VEOF
     info "  2. Init:      cd your-project && mdemg init"
     info "  3. Start:     mdemg start --auto-migrate"
     info "  4. Status:    mdemg status"
+    info "  5. Jiminy:    Inner-voice guidance configured during 'mdemg init'"
     echo ""
     info "Documentation: https://github.com/reh3376/mdemg_linux"
 }
