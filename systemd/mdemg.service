@@ -2,14 +2,13 @@
 Description=MDEMG - Multi-Dimensional Emergent Memory Graph
 Documentation=https://github.com/reh3376/mdemg_linux
 After=network-online.target docker.service
-Wants=network-online.target
-Requires=docker.service
+Wants=network-online.target docker.service
 
 [Service]
 Type=simple
 User=%i
 Environment=MDEMG_CONFIG_DIR=%h/.mdemg
-ExecStartPre=/usr/local/bin/mdemg db start
+ExecStartPre=/bin/sh -c 'docker start mdemg-neo4j-dev 2>/dev/null || /usr/local/bin/mdemg db start'
 ExecStart=/usr/local/bin/mdemg serve --auto-migrate
 ExecStop=/usr/local/bin/mdemg stop
 Restart=on-failure

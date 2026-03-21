@@ -275,7 +275,16 @@ do_install() {
             sudo install -m 644 "${tmpdir}/systemd/mdemg-rsic.service" "${SYSTEMD_DIR}/mdemg-rsic@.service"
             sudo install -m 644 "${tmpdir}/systemd/mdemg-rsic.timer" "${SYSTEMD_DIR}/mdemg-rsic@.timer"
             sudo systemctl daemon-reload
+            # Persist copies to SHARE_DIR for manual reference and fallback
+            local systemd_share="${SHARE_DIR}/systemd"
+            sudo mkdir -p "$systemd_share"
+            sudo install -m 644 "${tmpdir}/systemd/mdemg.service" "${systemd_share}/mdemg.service"
+            sudo install -m 644 "${tmpdir}/systemd/mdemg-rsic.service" "${systemd_share}/mdemg-rsic.service"
+            sudo install -m 644 "${tmpdir}/systemd/mdemg-rsic.timer" "${systemd_share}/mdemg-rsic.timer"
+            success "Systemd units installed to ${SYSTEMD_DIR}/ and ${systemd_share}/"
             info "Enable with: sudo systemctl enable --now mdemg@\$USER"
+        else
+            warn "Systemd service files not found in archive — skipped"
         fi
     fi
 

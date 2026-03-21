@@ -1075,11 +1075,14 @@ mdemg space import --input /tmp/beta-test.mdemg --target-space beta-test-cli-imp
 # Check if service files were installed
 ls /etc/systemd/system/mdemg@.service
 
-# If missing, install manually from the repo:
+# If missing, install manually from the persisted copies in SHARE_DIR:
 sudo cp /usr/local/share/mdemg/systemd/mdemg.service /etc/systemd/system/mdemg@.service
 sudo cp /usr/local/share/mdemg/systemd/mdemg-rsic.service /etc/systemd/system/mdemg-rsic@.service
 sudo cp /usr/local/share/mdemg/systemd/mdemg-rsic.timer /etc/systemd/system/mdemg-rsic@.timer
 sudo systemctl daemon-reload
+
+# If SHARE_DIR copies are also missing, re-run the installer:
+# curl -fsSL https://raw.githubusercontent.com/reh3376/mdemg_linux/main/install.sh | bash
 ```
 
 **Test the main MDEMG service:**
